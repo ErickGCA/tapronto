@@ -67,7 +67,7 @@ export default function Home() {
   }, [])
 
   // Handler do envio do formulário "Preciso de um serviço"
-  const handleEnviarSolicitacao = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEnviarSolicitacao = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     // Usa o bairro selecionado, se for "outro" usa o outroBairroCliente
@@ -78,26 +78,47 @@ export default function Home() {
       return
     }
 
-    const numeroWhats = "5542999277206" // Troque para seu número no formato internacional (DD+Número sem + ou espaços)
+    try {
+      const response = await fetch('/api/solicitacoes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nomeCliente,
+          telefoneCliente,
+          cidadeCliente,
+          bairroCliente: bairroFinal,
+          descricaoServico,
+          outraCidade: cidadeCliente === "outro" ? outraCidade : undefined
+        }),
+      })
 
-    // Monta a mensagem para WhatsApp
-    const mensagem =
-      `Olá, meu nome é ${nomeCliente}.\n` +
-      `Preciso do seguinte serviço: ${descricaoServico}.\n` +
-      `Cidade: ${cidadeCliente}\n` +
-      `Outra cidade: ${outraCidade}\n` +
-      `Bairro: ${bairroFinal}\n` +
-      `Telefone para contato: ${telefoneCliente}`
+      if (!response.ok) {
+        throw new Error('Erro ao enviar solicitação')
+      }
 
-    // Codifica a mensagem para a URL
-    const urlWhats = `https://wa.me/${numeroWhats}?text=${encodeURIComponent(mensagem)}`
+      const data = await response.json()
+      console.log('Solicitação enviada:', data)
 
-    // Abre o WhatsApp numa nova aba
-    window.open(urlWhats, "_blank")
+      // Limpa o formulário
+      setNomeCliente("")
+      setTelefoneCliente("")
+      setCidadeCliente("Ponta Grossa")
+      setBairroCliente("")
+      setOutroBairroCliente("")
+      setDescricaoServico("")
+      setOutraCidade("")
+
+      alert("Solicitação enviada com sucesso!")
+    } catch (error) {
+      console.error('Erro:', error)
+      alert("Erro ao enviar solicitação. Por favor, tente novamente.")
+    }
   }
 
   // Handler do envio do formulário "Ofereço serviços"
-  const handleEnviarCadastro = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleEnviarCadastro = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     if (!nomeProfissional.trim() || !telefoneProfissional.trim() || !tipoServico || !descricaoHabilidades.trim()) {
@@ -105,22 +126,43 @@ export default function Home() {
       return
     }
 
-    const numeroWhats = "5542999277206" // Use o mesmo número ou outro se necessário
+    try {
+      const response = await fetch('/api/profissionais', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nomeProfissional,
+          telefoneProfissional,
+          tipoServico,
+          descricaoHabilidades,
+          bairroFuncionario,
+          cidadeFuncionario
+        }),
+      })
 
-    // Monta a mensagem para WhatsApp
-    const mensagem =
-      `Olá, meu nome é ${nomeProfissional}.\n` +
-      `Gostaria de me cadastrar como profissional.\n` +
-      `Tipo de serviço: ${tipoServico}\n` +
-      `Minhas habilidades: ${descricaoHabilidades}\n` +
-      `Cidade: ${cidadeFuncionario}\n` +
-      `Telefone para contato: ${telefoneProfissional}`
+      if (!response.ok) {
+        throw new Error('Erro ao enviar cadastro')
+      }
 
-    // Codifica a mensagem para a URL
-    const urlWhats = `https://wa.me/${numeroWhats}?text=${encodeURIComponent(mensagem)}`
+      const data = await response.json()
+      console.log('Cadastro enviado:', data)
 
-    // Abre o WhatsApp numa nova aba
-    window.open(urlWhats, "_blank")
+      // Limpa o formulário
+      setNomeProfissional("")
+      setTelefoneProfissional("")
+      setTipoServico("")
+      setDescricaoHabilidades("")
+      setBairroFuncionario("")
+      setCidadeFuncionario("")
+      setOutroBairroFuncionario("")
+
+      alert("Cadastro enviado com sucesso!")
+    } catch (error) {
+      console.error('Erro:', error)
+      alert("Erro ao enviar cadastro. Por favor, tente novamente.")
+    }
   }
 
   // Função para controlar a exibição do input "Outro bairro"
