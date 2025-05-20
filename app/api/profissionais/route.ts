@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { sql } from '@vercel/postgres'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 // Interface para os dados do profissional
 interface ProfissionalData {
@@ -12,6 +14,17 @@ interface ProfissionalData {
   cidadeFuncionario: string
 }
 
+export async function GET() {
+    try {
+      const profissionais = await prisma.profissional.findMany()
+      return NextResponse.json(profissionais)
+    } catch (error) {
+      console.error('Erro ao buscar profissionais:', error)
+      return NextResponse.json({ error: 'Erro ao buscar profissionais' }, { status: 500 })
+    }
+  }
+
+  
 export async function POST(request: NextRequest) {
   try {
     const data: ProfissionalData = await request.json()
@@ -25,29 +38,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Inserir no banco de dados
-    const result = await sql`
-      INSERT INTO profissionais (
-        nome_profissional,
-        telefone_profissional,
-        tipo_servico,
-        descricao_habilidades,
-        bairro_funcionario,
-        cidade_funcionario
-      ) VALUES (
-        ${data.nomeProfissional},
-        ${data.telefoneProfissional},
-        ${data.tipoServico},
-        ${data.descricaoHabilidades},
-        ${data.bairroFuncionario},
-        ${data.cidadeFuncionario}
-      )
-      RETURNING id;
-    `
+    const profissional = await prisma.profissional.create({
+      data: {
+        nomeProfissional: data.nomeProfissional,
+        telefoneProfissional: data.telefoneProfissional,
+        tipoServico: data.tipoServico,
+        descricaoHabilidades: data.descricaoHabilidades,
+        bairroFuncionario: data.bairroFuncionario,
+        cidadeFuncionario: data.cidadeFuncionario
+      }
+    })
 
     return NextResponse.json(
       { 
         message: 'Cadastro recebido com sucesso',
-        id: result.rows[0].id,
+        id: profissional.id,
         data 
       },
       { status: 201 }

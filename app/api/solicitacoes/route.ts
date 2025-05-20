@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { sql } from '@vercel/postgres'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 // Interface para os dados da solicitação
 interface SolicitacaoData {
@@ -12,6 +14,21 @@ interface SolicitacaoData {
   outraCidade?: string
 }
 
+
+
+export async function GET() {
+    try {
+      const solicitacoes = await prisma.solicitacao.findMany()
+      return NextResponse.json(solicitacoes)
+    } catch (error) {
+      console.error('Erro ao buscar solicitações:', error)
+      return NextResponse.json({ error: 'Erro ao buscar solicitações' }, { status: 500 })
+    }
+  }
+  
+  // ... mantém sua função POST aqui
+  
+  
 export async function POST(request: NextRequest) {
   try {
     const data: SolicitacaoData = await request.json()
@@ -25,29 +42,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Inserir no banco de dados
-    const result = await sql`
-      INSERT INTO solicitacoes (
-        nome_cliente,
-        telefone_cliente,
-        cidade_cliente,
-        bairro_cliente,
-        descricao_servico,
-        outra_cidade
-      ) VALUES (
-        ${data.nomeCliente},
-        ${data.telefoneCliente},
-        ${data.cidadeCliente},
-        ${data.bairroCliente},
-        ${data.descricaoServico},
-        ${data.outraCidade}
-      )
-      RETURNING id;
-    `
+    const solicitacao = await prisma.solicitacao.create({
+      data: {
+        nomeCliente: data.nomeCliente,
+        telefoneCliente: data.telefoneCliente,
+        cidadeCliente: data.cidadeCliente,
+        bairroCliente: data.bairroCliente,
+        descricaoServico: data.descricaoServico,
+        outraCidade: data.outraCidade
+      }
+    })
 
     return NextResponse.json(
       { 
         message: 'Solicitação recebida com sucesso',
-        id: result.rows[0].id,
+        id: solicitacao.id,
         data 
       },
       { status: 201 }
