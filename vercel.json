@@ -2,8 +2,5 @@
   "buildCommand": "prisma generate && next build",
   "installCommand": "pnpm install",
   "framework": "nextjs",
-  "outputDirectory": ".next",
-  "env": {
-    "POSTGRES_PRISMA_URL": "@postgres-prisma-url"
-  }
+  "outputDirectory": ".next"
 } 
