@@ -12,6 +12,8 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
   },
+  output: 'standalone',
+  staticPageGenerationTimeout: 120,
 }
 
 export default nextConfig
