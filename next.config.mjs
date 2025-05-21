@@ -14,6 +14,10 @@ const nextConfig = {
   },
   output: 'standalone',
   staticPageGenerationTimeout: 120,
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  generateStaticParams: async () => {
+    return []
+  }
 }
 
 export default nextConfig
